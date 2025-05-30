@@ -1,4 +1,4 @@
-# 1. Airalo API tests
+# Airalo API tests
 
 ## Prerequisites 
 1. Make sure you have Node.js v16 or later installed
