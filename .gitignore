@@ -1,1 +1,4 @@
 local-dev.postman_environment.json
+node_modules/
+cypress/screenshots/
+cypress/videos/

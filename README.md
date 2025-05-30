@@ -20,3 +20,17 @@ local-dev.postman_environment.sample.json
 ## Running locally with Newman:
 Use this command:
 `newman run airalo_tests.postman_collection.json -e local-dev.postman_environment.json`
+# UI Automation Test
+
+This project uses Cypress as UI automation tool.
+
+## Prerequisites 
+1. Make sure you have Node.js v18 or later installed
+2. Run `npm install`
+
+## To run tests in headless mode:
+`npm run cypress-run`
+
+## To run tests in GUI:
+`npm run cypress-open`
+
