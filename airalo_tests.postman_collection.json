@@ -1,0 +1,333 @@
+{
+	"info": {
+		"_postman_id": "76f4af58-b3d0-44f3-abd3-d94e2b194895",
+		"name": "airalo_tests",
+		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json",
+		"_exporter_id": "3103677"
+	},
+	"item": [
+		{
+			"name": "Request Access Token",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"let json = pm.response.json();",
+							"pm.collectionVariables.set(\"access_token\", json.data.access_token);",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "client_id",
+							"value": "{{client_id}}",
+							"contentType": "string",
+							"description": "Required. Unique identifier of your application. Must be kept secure and never exposed publicly.",
+							"type": "text"
+						},
+						{
+							"key": "client_secret",
+							"value": "{{client_secret}}",
+							"description": "Required. Confidential key associated with your client ID. Must be kept secure and never exposed publicly.",
+							"type": "text"
+						},
+						{
+							"key": "grant_type",
+							"value": "client_credentials",
+							"description": "Required. The grant type should be set to \"client_credentials\". \nIt indicates server-to-server authentication, where the client application directly requests an access token without user intervention.",
+							"type": "text"
+						}
+					]
+				},
+				"url": "{{base_url}}/v2/token",
+				"description": "**This endpoint comes with a Rate Limit:you can send up to 5 requests to get Access Token during 1 minute.**\n\nThis endpoint lets you obtain an access token, which is necessary for making requests to the Airalo Partners API. By providing your client ID and client secret, you'll receive a token that is valid for **1 year**.\n\nIt's a good idea to store the access token in your API client and request a new one only if the current token expires or becomes invalid.\n\nFor more informations, best practices visit our FAQ page: [https://airalopartners.zendesk.com/hc/en-us/sections/13207524820893-FAQ](https://airalopartners.zendesk.com/hc/en-us/sections/13207524820893-FAQ)"
+			},
+			"response": []
+		},
+		{
+			"name": "Submit Order (withouit email)",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"if (!pm.collectionVariables.get(\"access_token\")) {",
+							"  throw new Error(\"No access token set. Make sure token request ran first.\");",
+							"}",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var json = pm.response.json();",
+							"pm.collectionVariables.set(\"sim_ids\", json.data.sims.map(sim => sim.id));",
+							"",
+							"",
+							"if (!pm.collectionVariables.get(\"access_token\")) {",
+							"    throw new Error(\"No access token set. Make sure token request ran first.\");",
+							"}",
+							"",
+							"pm.test(\"The token is valid\", function () {",
+							"    pm.response.to.not.have.status(401);",
+							"});",
+							"",
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Has correct package_id\", function () {",
+							"    pm.expect(json.data.package_id).to.eql('merhaba-7days-1gb');",
+							"});",
+							"",
+							"pm.test(\"Has correct description\", function () {",
+							"    pm.expect(json.data.description).to.eql('6 sim merhaba-7days-1gb');",
+							"});",
+							"",
+							"pm.test(\"Contains 6 sims\", function () {",
+							"    pm.expect(json.data.sims.length).to.eql(6);",
+							"});",
+							"",
+							"pm.test(\"Sims have unique ids\", function () {",
+							"    let uniqueIds = [...new Set(pm.collectionVariables.get(\"sim_ids\"))];",
+							"    pm.expect(uniqueIds.length).to.eql((pm.collectionVariables.get(\"sim_ids\")).length);",
+							"",
+							"})",
+							"",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": {
+						"token": "{{access_token}}"
+					}
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{access_token}}"
+					}
+				],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "quantity",
+							"value": "6",
+							"description": "Required. The quantity of items in the order. Maximum of 50.",
+							"type": "text"
+						},
+						{
+							"key": "package_id",
+							"value": "merhaba-7days-1gb",
+							"description": "Required. The package ID associated with the order. You can obtain this from the \"Packages / Get Packages\" endpoint.",
+							"type": "text"
+						},
+						{
+							"key": "type",
+							"value": "sim",
+							"description": "Optional. The only possible value for this endpoint is \"sim\". If left empty, default \"sim\" value will be used.",
+							"type": "text"
+						},
+						{
+							"key": "description",
+							"value": "6 sim merhaba-7days-1gb",
+							"description": "Optional. A custom description for the order, which can help you identify it later.",
+							"type": "text"
+						},
+						{
+							"key": "brand_settings_name",
+							"value": "",
+							"description": "Nullable. The definition under what brand the eSIM should be shared. Null for unbranded.",
+							"type": "text",
+							"disabled": true
+						},
+						{
+							"key": "to_email",
+							"value": "",
+							"description": "Optional. If specified, email with esim sharing will be sent. sharing_option should be specified as well. ",
+							"type": "text",
+							"disabled": true
+						},
+						{
+							"key": "sharing_option[]",
+							"value": "link",
+							"description": "Optional. Array. Required when to_email is set. Available options: link, pdf",
+							"type": "text",
+							"disabled": true
+						},
+						{
+							"key": "copy_address[]",
+							"value": "",
+							"description": "Optional. Array. It uses when to_email is set.",
+							"type": "text",
+							"disabled": true
+						}
+					]
+				},
+				"url": "{{base_url}}/v2/orders",
+				"description": "This endpoint allows you to submit an order to the Airalo Partners API. Provide the required information, such as quantity and package ID, and include optional description if needed.\n\nThe access token, obtained from the \"Request Access Token\" endpoint, should be included in the request.\n\nFor more informations, best practices visit our FAQ page: [https://airalopartners.zendesk.com/hc/en-us/sections/13207524820893-FAQ](https://airalopartners.zendesk.com/hc/en-us/sections/13207524820893-FAQ)\n\n**direct_apple_installation_url:**\n\nPartner API now supports direct installation on iOS devices. With the introduction of Universal Links by Apple, users with iOS 17.4 or higher can directly install eSIMs using a special URL, which can be provided to your end clients if they are using iOS version 17.4 or above.  \n  \nWhen **to_email** is set email will be sent asynchronously, the template is configured in multiple languages, as of now the  message body and subject cannot be given by the Partner"
+			},
+			"response": []
+		},
+		{
+			"name": "Get eSIMs List",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"let json = pm.response.json();",
+							"",
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Contains ordered sims\", function () {",
+							"    let all_sim_ids =  json.data.map(sim => sim.id);",
+							"    pm.collectionVariables.get(\"sim_ids\").forEach(function (id) {",
+							"        if (!all_sim_ids.includes(id)) {",
+							"            throw new Error(`Missing sim_id: ${id}`);",
+							"        }",
+							"    });",
+							"});",
+							"",
+							"pm.collectionVariables.unset(\"sim_ids\");",
+							"pm.collectionVariables.unset(\"access_token\");"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": {
+						"token": "{{access_token}}"
+					}
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{access_token}}"
+					}
+				],
+				"url": {
+					"raw": "{{base_url}}/v2/sims",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v2",
+						"sims"
+					],
+					"query": [
+						{
+							"key": "include",
+							"value": "order",
+							"description": "Optional. A comma-separated string to include related data in the response. Possible values are \"order\", \"order.status\", \"order.user\" and \"share\".",
+							"disabled": true
+						},
+						{
+							"key": "filter[created_at]",
+							"value": "",
+							"description": "Optional. A string to filter eSIMs by their creation date. Specify the date range using a dash (-) as a delimiter for correct parsing.",
+							"disabled": true
+						},
+						{
+							"key": "filter[iccid]",
+							"value": "8944465400000217735",
+							"description": "Optional. A string to filter eSIMs by their ICCID. This performs a like search using the format '%SIM_ICCID%'.",
+							"disabled": true
+						},
+						{
+							"key": "limit",
+							"value": "100",
+							"description": "Optional. An integer specifying how many sims will be returned on each page.",
+							"disabled": true
+						},
+						{
+							"key": "page",
+							"value": "1",
+							"description": "Optional. An integer specifying the pagination's current page.",
+							"disabled": true
+						}
+					]
+				},
+				"description": "This endpoint allows you to retrieve a list of your eSIMs from the Airalo Partners API. You can customize the results using various filters and include related data in the response by specifying optional parameters.\n\nThe access token, obtained from the \"Request Access Token\" endpoint, should be included in the request.\n\n**direct_apple_installation_url:**\n\nPartner API now supports direct installation on iOS devices. With the introduction of Universal Links by Apple, users with iOS 17.4 or higher can directly install eSIMs using a special URL, which can be provided to your end clients if they are using iOS version 17.4 or above."
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "access_token",
+			"value": ""
+		},
+		{
+			"key": "sim_ids",
+			"value": ""
+		},
+		{
+			"key": "base_url",
+			"value": "https://sandbox-partners-api.airalo.com",
+			"type": "string"
+		}
+	]
+}
